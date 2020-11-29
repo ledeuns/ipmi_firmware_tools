@@ -15,20 +15,20 @@ class ASpeed:
 			length = int(length,16)
 			checksum = int(checksum,16)
 
-			print "Firmware image: %i Name: %s Base: 0x%x Length: 0x%x CRC32: 0x%x" % (imagenum, filename, imagestart, length, checksum)
+			print("Firmware image: %i Name: %s Base: 0x%x Length: 0x%x CRC32: 0x%x" % (imagenum, filename, imagestart, length, checksum))
 
 
 			if extract:
 				imageend = imagestart + length
-				print "Dumping 0x%x to 0x%X to data/%s" % (imagestart, imageend, filename)
+				print("Dumping 0x%x to 0x%X to data/%s" % (imagestart, imageend, filename))
 				with open('data/%s' % filename,'w') as f:
 					f.write(ipmifw[imagestart:imageend])
 
 				computed_image_checksum = zlib.crc32(ipmifw[imagestart:imageend]) & 0xffffffff
 				if computed_image_checksum != checksum:
-					print "Warniing: Image checksum mismatch, footer: 0x%x computed 0x%x" % (checksum, computed_image_checksum)
+					print("Warniing: Image checksum mismatch, footer: 0x%x computed 0x%x" % (checksum, computed_image_checksum))
 				else:
-					print "Image checksum matches"
+					print("Image checksum matches")
 
 			config.set('images', str(imagenum), 'present')
 			configkey = 'image_%i' % imagenum
@@ -45,18 +45,18 @@ class ASpeed:
 
 			(rev1, rev2, rootfs_crc, rootfs_len, fwtag1, webfs_crc, webfs_len, fwtag2) = struct.unpack("<bb4s4sb4s4sb", imageFooter)
 			if fwtag1 != 0x71 or fwtag2 != 0x17:
-				print "Error matching footer tags"
+				print("Error matching footer tags")
 			else:
 				len2 = config.get('image_2', 'length')
 				crc2 = config.get('image_2', 'checksum')
 				len4 = config.get('image_4', 'length')
 				crc4 = config.get('image_4', 'checksum')
 				if rootfs_len != len2[2:6] or rootfs_crc != crc2[2:6]:
-					print "Root_fs image info does not match"
+					print("Root_fs image info does not match")
 				elif webfs_len != len4[2:6] or webfs_crc != crc4[2:6]:
-					print "Web_fs image info does not match"
+					print("Web_fs image info does not match")
 				else:
-					print "Footer OK, rev: %x.%x" % (rev1, rev2)
+					print("Footer OK, rev: %x.%x" % (rev1, rev2))
 
 			config.set('global', 'major_version', rev1)
 			config.set('global', 'minor_version', rev2)
@@ -64,7 +64,7 @@ class ASpeed:
 	def init_image(self, new_image, total_size):
 		# Aspeed image has some parts filled with nulls
 		if total_size < 0x1F40000:
-			print "Unexpected ASpeed image size"
+			print("Unexpected ASpeed image size")
 			os.exit(1)
 		# space for uboot bootloader
 		for i in range(0,0x100000):
@@ -102,9 +102,9 @@ class ASpeed:
 		# no image footer for ASpeed, but check for changes
 		curcrc = int(config.get(configkey, 'curcrc'), 0)
 		if curcrc == int(config.get(configkey, 'checksum'), 0):
-			print "  Image unchanged"
+			print("  Image unchanged")
 		else:
-			print "  Image modified"
+			print("  Image modified")
 
 		return (new_image.tell(), None)
 

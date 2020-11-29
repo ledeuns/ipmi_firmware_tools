@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 import os, io, sys, zlib
-from ConfigParser import ConfigParser
+from configparser import ConfigParser
 from ipmifw.FirmwareImage import FirmwareImage
 from ipmifw.FirmwareFooter import FirmwareFooter
 
@@ -9,7 +9,7 @@ config = ConfigParser()
 try:
 	config.read('data/image.ini')
 except:
-	print "Unable to read image configuration"
+	print("Unable to read image configuration")
 	os.exit(1)
 
 if config.get('global','type') == 'aspeed':
@@ -40,7 +40,7 @@ images.sort()
 imagecrc = []
 # write all images into the firmware file
 for imagenum in images:
-	print "Processing image %i"  % imagenum
+	print("Processing image %i"  % imagenum)
 
 	configkey = 'image_%i' % imagenum
 
@@ -54,8 +54,8 @@ for imagenum in images:
 		imagestart -= 0x40000000
 
 	if imagestart < new_image.tell():
-		print "ERROR: Previous image was too big, and has overriten data where the current image should begin."
-		print "Aborting."
+		print("ERROR: Previous image was too big, and has overriten data where the current image should begin.")
+		print("Aborting.")
 		sys.exit(1)
 
 	# Seek to where this image will start	
@@ -93,5 +93,5 @@ new_image.write(footer.getRawString())
 
 firmware.write_global_index(config, new_image, images)
  
-print "Done, new firmware written to data/rebuild_image.bin"
+print("Done, new firmware written to data/rebuild_image.bin")
 

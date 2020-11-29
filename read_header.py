@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 import re, hashlib, os, io, argparse, sys, zlib
-from ConfigParser import ConfigParser
+from configparser import ConfigParser
 from ipmifw.FirmwareImage import FirmwareImage
 from ipmifw.FirmwareFooter import FirmwareFooter
 
@@ -24,19 +24,19 @@ type=unknown
 """
 
 config = ConfigParser()
-config.readfp(io.BytesIO(default_ini))
+config.read_string(default_ini)
 
-with open(args.filename,'r') as f:
+with open(args.filename,'rb') as f:
 	ipmifw = f.read()
 
-config.set('flash', 'total_size', len(ipmifw))
+config.set('flash', 'total_size', str(len(ipmifw)))
 
 try:
 	os.mkdir('data')
 except OSError:
 	pass
 
-print "Read %i bytes" % len(ipmifw)
+print("Read %i bytes" % len(ipmifw))
 
 fwtype = 'unknown'
 if len(ipmifw) > 0x01fc0000:
@@ -48,15 +48,15 @@ if fwtype == 'unknown':
 	bootloader_md5 = hashlib.md5(bootloader).hexdigest()
 
 	if bootloader_md5 != "166162c6c9f21d7a710dfd62a3452684":
-		print "Warning: bootloader (first 64040 bytes of file) md5 doesn't match.  This parser may not work with a different bootloader"
-		print "Expected 166162c6c9f21d7a710dfd62a3452684, got %s" % bootloader_md5
+		print("Warning: bootloader (first 64040 bytes of file) md5 doesn't match.  This parser may not work with a different bootloader")
+		print("Expected 166162c6c9f21d7a710dfd62a3452684, got %s" % bootloader_md5)
 	else:
-		print "Bootloader md5 matches, this parser will probably work!"
+		print("Bootloader md5 matches, this parser will probably work!")
 		fwtype = 'winbond'
 
 	if args.extract:
-		print "Dumping bootloader to data/bootloader.bin"
-		with open('data/bootloader.bin','w') as f:
+		print("Dumping bootloader to data/bootloader.bin")
+		with open('data/bootloader.bin','wb') as f:
 			f.write(bootloader)
 
 config.set('global', 'type', fwtype)
@@ -75,7 +75,7 @@ elif fwtype == 'aspeed':
 	firmware.parse(ipmifw, args.extract, config)
 
 else:
-	print "Error: Unable to determine what type of IPMI firmware this is!"
+	print("Error: Unable to determine what type of IPMI firmware this is!")
 	sys.exit(1)
 
 
@@ -83,5 +83,5 @@ if args.extract:
 	with open('data/image.ini','w') as f:
 		config.write(f)
 else:
-	print "\nConfiguration info:\n"
+	print("\nConfiguration info:\n")
 	config.write(sys.stdout)

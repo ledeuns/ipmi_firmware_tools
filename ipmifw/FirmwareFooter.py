@@ -26,34 +26,34 @@ class FirmwareFooter:
 
 	def loadFromString(self, footer):
 		if len(footer) >= 20:
-			(self.rev1, self.rev2, self.rootfs_nfo, self.fwtag1, self.webfs_nfo, self.fwtag2) = struct.unpack("<bb8sb8sb", footer)
+			(self.rev1, self.rev2, self.rootfs_nfo, self.fwtag1, self.webfs_nfo, self.fwtag2) = struct.unpack(b'<bb8sb8sb', footer)
 		# Older footer versions have tags at different offset
 		if len(footer) < 20 or self.fwtag1 != 0x71 or self.fwtag2 != 0x17:
 			self.footerver = 2
-			(self.rev1, self.rev2, self.fwtag1, self.checksum, self.fwtag2) = struct.unpack("<bbbIb", footer)
+			(self.rev1, self.rev2, self.fwtag1, self.checksum, self.fwtag2) = struct.unpack(b'<bbbIb', footer)
 			# Seems firmware older then v3.00 uses a different footer, which doesn't have the tag
 			if self.fwtag1 != 0x71 or self.fwtag2 != 0x17:
-				(self.rev1, self.rev2, self.checksum) = struct.unpack("<bbI", footer[:6])
+				(self.rev1, self.rev2, self.checksum) = struct.unpack(b'<bbI', footer[:6])
 				self.footerver = 1
 				self.fwtag1 = 0
 				self.fwtag2 = 0
 
 	def getRawString(self):
 		if self.footerver == 3:
-			contents = "ATENs_FW"+struct.pack("<bb8sb8sb", self.rev1, self.rev2, self.rootfs_nfo, self.fwtag1, self.webfs_nfo, self.fwtag2)
+			contents = "ATENs_FW"+struct.pack(b'<bb8sb8sb', self.rev1, self.rev2, self.rootfs_nfo, self.fwtag1, self.webfs_nfo, self.fwtag2)
 		elif self.footerver == 2:
-			contents = "ATENs_FW"+struct.pack("<bbbIb", self.rev1, self.rev2, self.fwtag1, self.checksum, self.fwtag2)
+			contents = "ATENs_FW"+struct.pack(b'<bbbIb', self.rev1, self.rev2, self.fwtag1, self.checksum, self.fwtag2)
 		else:
-			contents = "ATENs_FW"+struct.pack("<bbI", self.rev1, self.rev2, self.checksum)
+			contents = "ATENs_FW"+struct.pack(b'<bbI', self.rev1, self.rev2, self.checksum)
 		return contents
 
 	def __str__(self):
 		return "Firmware footer version %i firmware version %i.%i checksum: 0x%x tag: 0x%x%x rootfs_nfo: 0x%s webfs_nfo: 0x%s" % (self.footerver, self.rev1, self.rev2, self.checksum, self.fwtag1, self.fwtag2, self.rootfs_nfo, self.webfs_nfo)
 
 	def computeFooterChecksum(self, imagecrc):
-		rawCRCBuf = ""
+		rawCRCBuf = b''
 		for cur in imagecrc:
-			rawCRCBuf += struct.pack("<I",cur)
+			rawCRCBuf += struct.pack(b'<I',cur)
 
 		return (zlib.crc32(rawCRCBuf) & 0xffffffff)
 

@@ -12,8 +12,8 @@ class Winbond:
 
 
 		if extract:
-			print "Dumping bootloader to data/bootloader.bin"
-			with open('data/bootloader.bin','w') as f:
+			print("Dumping bootloader to data/bootloader.bin")
+			with open('data/bootloader.bin','wb') as f:
 				f.write(bootloader)
 
 
@@ -31,7 +31,7 @@ class Winbond:
 			if not fi.isValid():
 				continue
 
-			print "\n"+str(fi)
+			print("\n"+str(fi))
 
 			imagestart = fi.base_address
 			if imagestart > 0x40000000:
@@ -44,15 +44,15 @@ class Winbond:
 			imagecrc.append(curcrc)
 
 			if extract:
-				print "Dumping 0x%s to 0x%s to data/%s.bin" % (imagestart, imageend, fi.name)
-				with open('data/%s.bin' % fi.name.replace("\x00",""),'w') as f:
+				print("Dumping 0x%s to 0x%s to data/%s.bin" % (imagestart, imageend, fi.name.decode('utf-8')))
+				with open("data/%s.bin" % fi.name.decode('utf-8'),'wb') as f:
 					f.write(ipmifw[imagestart:imageend])
 				computed_image_checksum = FirmwareImage.computeChecksum(ipmifw[imagestart:imageend])
 
 				if computed_image_checksum != fi.image_checksum:
-					print "Warning: Image checksum mismatch, footer: 0x%x computed: 0x%x" % (fi.image_checksum,computed_image_checksum)
+					print("Warning: Image checksum mismatch, footer: 0x%x computed: 0x%x" % (fi.image_checksum,computed_image_checksum))
 				else:
-					print "Image checksum matches"
+					print("Image checksum matches")
 
 
 			config.set('images', str(fi.imagenum), 'present')
@@ -62,32 +62,32 @@ class Winbond:
 			config.set(configkey, 'base_addr', hex(fi.base_address))
 			config.set(configkey, 'load_addr', hex(fi.load_address))
 			config.set(configkey, 'exec_addr', hex(fi.exec_address))
-			config.set(configkey, 'name', fi.name)
+			config.set(configkey, 'name', str(fi.name))
 			config.set(configkey, 'type', hex(fi.type))
 
 		# Next, find and validate the global footer
-		for imageFooter in re.findall("ATENs_FW(.{8})",ipmifw,re.DOTALL):
+		for imageFooter in re.findall(b'ATENs_FW(.{8})',ipmifw,re.DOTALL):
 			footer = FirmwareFooter()
 			footer.loadFromString(imageFooter)
 			computed_checksum = footer.computeFooterChecksum(imagecrc)
 
-			print "\n"+str(footer)
+			print("\n"+str(footer))
 
 			if footer.checksum == computed_checksum:
-				print "Firmware checksum matches"
+				print("Firmware checksum matches")
 			else:
-				print "Firwamre checksum mismatch, footer: 0x%x computed: 0x%x" % (footer.checksum, computed_checksum)
+				print("Firwamre checksum mismatch, footer: 0x%x computed: 0x%x" % (footer.checksum, computed_checksum))
 
-			config.set('global', 'major_version', footer.rev1)
-			config.set('global', 'minor_version', footer.rev2)
-			config.set('global', 'footer_version', footer.footerver)
+			config.set('global', 'major_version', str(footer.rev1))
+			config.set('global', 'minor_version', str(footer.rev2))
+			config.set('global', 'footer_version', str(footer.footerver))
 
 	def init_image(self, new_image, total_size):
 		for i in range(0,total_size):
 			new_image.write('\xFF')
 
 	def write_bootloader(self, new_image):
-		print "Writing bootloader..."
+		print("Writing bootloader...")
 		with open('data/bootloader.bin','r') as f:
 			new_image.write(f.read())
 
@@ -95,9 +95,9 @@ class Winbond:
 		return cur_image
 
 	def write_image_footer(self, new_image, cur_image, config, configkey, imagenum, base_addr, name):
-                load_addr = int(config.get(configkey, 'load_addr'),0)
-                exec_addr = int(config.get(configkey, 'exec_addr'),0)
-                type = int(config.get(configkey, 'type'),0)
+		load_addr = int(config.get(configkey, 'load_addr'),0)
+		exec_addr = int(config.get(configkey, 'exec_addr'),0)
+		type = int(config.get(configkey, 'type'),0)
 
 		# Prepare the image footer based on the data
 		# we've stored previously
@@ -145,8 +145,8 @@ class Winbond:
 		# and the last image footer
 		global_start = footerpos-16
 		if global_start < curblockend:
-			print "ERROR: Would have written global footer over last image"
-			print "Aborting"
+			print("ERROR: Would have written global footer over last image")
+			print("Aborting")
 			sys.exit(1)
 
 		return global_start
